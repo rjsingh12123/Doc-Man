@@ -2,6 +2,12 @@ version: '3.8'
 
 services:
 
+  ingestion_mock:
+    build: ../ingestion-mock
+    container_name: ingestion_mock
+    ports:
+      - "3001:3001"
+
   minio:
     image: minio/minio
     container_name: minio
