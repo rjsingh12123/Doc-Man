@@ -42,4 +42,20 @@ export class AppService {
   static getSwaggerUrl(): string {
     return process.env.SWAGGER_URL ?? 'http://localhost:3000/api';
   }
+
+  static getJwtSecret(): string {
+    return process.env.JWT_SECRET ?? 'secret';
+  }
+
+  static getJwtExpiresIn(): string {
+    return process.env.JWT_EXPIRES_IN ?? '1h';
+  }
+
+  static getJwtRefreshTokenSecret(): string {
+    return process.env.JWT_REFRESH_TOKEN_SECRET ?? 'secret';
+  }
+
+  static getJwtRefreshTokenExpiresIn(): string {
+    return process.env.JWT_REFRESH_TOKEN_EXPIRES_IN ?? '1d';
+  }
 }
