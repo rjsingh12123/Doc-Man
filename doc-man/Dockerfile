@@ -39,5 +39,8 @@ ENV NODE_ENV production
 # Expose the port the app runs on
 EXPOSE 3000
 
+# Command to seed the database
+CMD ["yarn", "seed"]
+
 # Command to run the application
 CMD ["node", "dist/main"] 
