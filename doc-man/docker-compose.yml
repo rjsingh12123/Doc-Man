@@ -14,10 +14,9 @@ services:
       - postgres
       - minio
       - ingestion_mock
-      - createbuckets
     volumes:
       - docman_data:/app/src
-    command: yarn start:dev
+    command: yarn seed && yarn start:dev
 
   ingestion_mock:
     build: ../ingestion-mock
