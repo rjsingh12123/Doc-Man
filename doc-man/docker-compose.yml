@@ -2,6 +2,23 @@ version: '3.8'
 
 services:
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - .env
+    depends_on:
+      - postgres
+      - minio
+      - ingestion_mock
+      - createbuckets
+    volumes:
+      - docman_data:/app/src
+    command: yarn start:dev
+
   ingestion_mock:
     build: ../ingestion-mock
     container_name: ingestion_mock
@@ -50,3 +67,4 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  docman_data:
