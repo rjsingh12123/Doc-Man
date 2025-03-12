@@ -58,4 +58,8 @@ export class AppService {
   static getJwtRefreshTokenExpiresIn(): string {
     return process.env.JWT_REFRESH_TOKEN_EXPIRES_IN ?? '1d';
   }
+
+  static getIngestionUrl(): string {
+    return process.env.INGESTION_URL ?? 'http://localhost:3001';
+  }
 }
