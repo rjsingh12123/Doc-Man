@@ -7,7 +7,7 @@ export const dataSource = new DataSource({
   port: AppService.getDbPort(),
   username: AppService.getDbUsername(),
   password: AppService.getDbPassword(),
-  database: AppService.getDbType(),
+  database: AppService.getDb(),
   entities: [User],
   synchronize: true,
 });

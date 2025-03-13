@@ -8,21 +8,25 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    environment:
+    env_file:
       - .env
     depends_on:
       - postgres
       - minio
       - ingestion_mock
     volumes:
-      - docman_data:/app/src
-    command: yarn seed && yarn start:dev
+      - ./src:/home/node/src
+    command: yarn start:prod
+    networks:
+      - docman_network
 
   ingestion_mock:
     build: ../ingestion-mock
     container_name: ingestion_mock
     ports:
       - "3001:3001"
+    networks:
+      - docman_network
 
   minio:
     image: minio/minio
@@ -36,6 +40,8 @@ services:
     volumes:
       - minio_data:/data
     command: server --console-address ":9001" /data
+    networks:
+      - docman_network
 
   createbuckets:
     image: minio/mc
@@ -48,6 +54,8 @@ services:
       mc mb localminio/docman;
       exit 0;
       "
+    networks:
+      - docman_network
   
   postgres:
     image: postgres:16
@@ -62,8 +70,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - docman_network
 
 volumes:
   postgres_data:
   minio_data:
-  docman_data:
+
+networks:
+  docman_network:
+    driver: bridge

@@ -1,46 +1,26 @@
-# Build Stage
-FROM node:20-alpine AS build
+FROM node:20 as builder
 
-WORKDIR /app
+ENV NODE_ENV build
 
-# Copy package files
-COPY package.json yarn.lock ./
+WORKDIR /home/node
 
-# Install dependencies
-RUN yarn install
+COPY . /home/node
 
-# Copy tsconfig.json first (explicitly)
-COPY tsconfig.json ./
+RUN yarn install \
+    && yarn build
 
-# Copy source code
-COPY . .
+# ---
 
-# Build the application
-RUN yarn build
+FROM node:20
 
-# Production Stage
-FROM node:20-alpine
+USER node
+WORKDIR /home/node
 
-WORKDIR /app
+COPY --from=builder /home/node/package*.json /home/node/
+COPY --from=builder /home/node/tsconfig*.json /home/node/
+COPY --from=builder /home/node/node_modules/ /home/node/node_modules/
+COPY --from=builder /home/node/src/ /home/node/src/
+COPY --from=builder /home/node/dist/ /home/node/dist/
+COPY --from=builder /home/node/.env* /home/node/
 
-# Copy package files
-COPY package.json yarn.lock ./
-
-# Install production dependencies only
-RUN yarn install --production
-
-# Copy built application from build stage
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/node_modules ./node_modules
-
-# Set environment variables
-ENV NODE_ENV production
-
-# Expose the port the app runs on
-EXPOSE 3000
-
-# Command to seed the database
-CMD ["yarn", "seed"]
-
-# Command to run the application
-CMD ["node", "dist/main"] 
+CMD ["yarn", "start:prod"]
