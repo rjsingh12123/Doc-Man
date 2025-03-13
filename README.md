@@ -96,15 +96,105 @@ yarn test:cov      # Generate test coverage report
 yarn seed          # Run database seed scripts
 ```
 
-## Environment Variables
+## API Endpoints
 
-Configuration is managed through the `.env` file:
+### Authentication
 
-- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`: PostgreSQL credentials
-- `DB_HOST`, `DB_PORT`, etc.: Database connection details
-- `PORT`: API service port (default: 3000)
-- `JWT_SECRET`, `JWT_EXPIRES_IN`: JWT authentication configuration
-- `MICROSERVICE_PORT`, `MICROSERVICE_HOST`: Microservice configuration
+| Endpoint | Method | Description | Request Body | Response |
+|----------|--------|-------------|--------------|----------|
+| `/auth/login` | POST | User login | `{ username, password }` | `{ access_token }` |
+| `/auth/register` | POST | User registration | `{ username, password, email, role, permissions }` | User object |
+| `/auth/logout` | POST | User logout | `{ username, access_token }` | Success message |
+
+### Users
+
+| Endpoint | Method | Description | Request Body/Params | Response |
+|----------|--------|-------------|---------------------|----------|
+| `/users` | GET | Get all users | - | Array of users |
+| `/users/:id` | GET | Get user by ID | ID in URL | User object |
+| `/users` | POST | Create a new user | User data | Created user object |
+| `/users/:id` | PATCH | Update a user | ID in URL, user data in body | Updated user object |
+| `/users/:id` | DELETE | Remove a user | ID in URL | - |
+
+### Documents
+
+| Endpoint | Method | Description | Request Body/Params | Response |
+|----------|--------|-------------|---------------------|----------|
+| `/documents` | GET | Get all documents | Query params for pagination | Array of documents |
+| `/documents/:id` | GET | Get document by ID | ID in URL | Document object |
+| `/documents` | POST | Create a new document | Document metadata | Created document object |
+| `/documents/:id` | PATCH | Update a document | ID in URL, document data in body | Updated document object |
+| `/documents/:id` | DELETE | Remove a document | ID in URL | - |
+
+### Ingestion
+
+| Endpoint | Method | Description | Request Body/Params | Response |
+|----------|--------|-------------|---------------------|----------|
+| `/ingestion` | POST | Start document ingestion | File data | Ingestion status |
+| `/ingestion/status/:id` | GET | Get ingestion status | ID in URL | Status object |
+| `/ingestion/cancel/:id` | GET | Cancel ingestion | ID in URL | Updated status |
+| `/ingestion/pause/:id` | GET | Pause ingestion | ID in URL | Updated status |
+| `/ingestion/resume/:id` | GET | Resume ingestion | ID in URL | Updated status |
+| `/ingestion/retry/:id` | GET | Retry ingestion | ID in URL | Updated status |
+| `/ingestion/embedding/:id` | GET | Get document embedding | ID in URL | Embedding data |
+
+## Services
+
+### AuthService
+Handles user authentication, token generation, and registration.
+- `validateUser()`: Validates user credentials
+- `login()`: Authenticates users and returns JWT token
+- `register()`: Creates new user accounts with hashed passwords
+- `logout()`: Logs out users
+
+### UsersService
+Manages user accounts and operations.
+- `findOneByUsername()`: Finds a user by username
+- `create()`: Creates a new user
+- `findAll()`: Retrieves all users
+- `findOne()`: Finds a user by ID
+- `update()`: Updates user information
+- `remove()`: Deletes a user
+
+### DocumentsService
+Handles document operations.
+- `create()`: Creates a new document record
+- `findAll()`: Retrieves all documents
+- `findOne()`: Finds a document by ID
+- `update()`: Updates document information
+- `remove()`: Deletes a document
+- `findAllPaginated()`: Gets documents with pagination
+
+### IngestionService
+Manages document ingestion workflow.
+- `ingestData()`: Initiates document ingestion
+- `getIngestionStatus()`: Checks ingestion status
+- `cancelIngestion()`: Cancels an ongoing ingestion
+- `pauseIngestion()`: Pauses an ingestion process
+- `resumeIngestion()`: Resumes a paused ingestion
+- `retryIngestion()`: Retries a failed ingestion
+- `getDocumentEmbedding()`: Retrieves document embeddings
+
+## Authentication Flow
+
+1. **Registration**: Users register with username/password and are assigned roles and permissions
+2. **Login**: Users authenticate to receive a JWT token
+3. **Authorization**: Protected endpoints require a valid JWT token in the Authorization header
+4. **Roles & Permissions**: Different user roles have different access levels
+
+## File Upload Process
+
+1. Create a new document record with metadata
+2. Upload the file to the ingestion service
+3. The ingestion service processes the file and stores it in MinIO
+4. The document is now available for retrieval
+
+## MinIO Integration
+
+Doc Man uses MinIO for object storage:
+- All files are stored in MinIO buckets
+- Files are referenced by their object IDs in the document records
+- The API handles retrieval from MinIO transparently
 
 ## User Roles and Permissions
 
@@ -121,6 +211,29 @@ Permissions include:
 - Update
 - Delete
 - All
+
+## Example API Requests
+
+### Login
+```bash
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "admin123"}'
+```
+
+### Upload Document
+```bash
+curl -X POST http://localhost:3000/documents \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"fileName": "example.pdf", "fileType": "application/pdf"}'
+```
+
+### Retrieve Documents (Paginated)
+```bash
+curl -X GET "http://localhost:3000/documents?page=1&pageSize=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
 ## Troubleshooting
 
@@ -141,3 +254,7 @@ If you have problems connecting to the database:
 
 When the application is running, you can access the Swagger API documentation at:
 http://localhost:3000/api
+
+## License
+
+[UNLICENSED]
